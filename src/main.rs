@@ -7,7 +7,7 @@ fn main() {
     use eframe::epaint::Vec2;
 
     let native_options = eframe::NativeOptions {
-        initial_window_size: Some(Vec2::new(500., 400.)),
+        initial_window_size: Some(Vec2::new(510., 400.)),
         min_window_size: Some(Vec2::new(400., 200.)),
         ..Default::default()
     };
