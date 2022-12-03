@@ -1,6 +1,6 @@
 # amect
 
-AME Central toolkit...or as I'd like to call it "AMECS ULTRA DELUXE PRO FREE VERSION"*
+Central AME toolkit
 
 Gui for [amecs](https://git.ameliorated.info/Joe/amecs/src/branch/master)
 
@@ -12,3 +12,4 @@ Gui for [amecs](https://git.ameliorated.info/Joe/amecs/src/branch/master)
 - [ ] Elevate user to administrator
 - [ ] Disable username login requirement
 - [ ] Enable auto-login
+- [ ] Extras
