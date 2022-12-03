@@ -7,7 +7,7 @@ pub struct Password<'a> {
 
 impl<'a> Password<'a> {
     /// I've no idea how to make unique ids...so here we go
-    pub fn new(id_source: impl std::hash::Hash, password: &'a mut String) -> Password<'a> {
+    pub fn new(id_source: impl std::hash::Hash, password: &'a mut String) -> Self {
         Self {
             id_source: egui::Id::new(id_source),
             buf: password,
