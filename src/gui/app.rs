@@ -1,4 +1,5 @@
-use eframe::{egui, epaint::Vec2};
+use crate::utils::browse_image_file;
+use eframe::egui;
 
 #[derive(Debug, Default)]
 pub struct AMEApp {
@@ -23,8 +24,36 @@ impl AMEApp {
             return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
         }
 
+        configure_fonts(&cc.egui_ctx);
+
         Default::default()
     }
+}
+
+fn configure_fonts(ctx: &egui::Context) {
+    let mut style = (*ctx.style()).clone();
+    // * Other ways to increase font size but is set for every element
+    // style.override_font_id = Some(egui::FontId::proportional(24.));
+    // for (_text_style, font_id) in style.text_styles.iter_mut() {
+    //     font_id.size = 16.;
+    // }
+
+    style
+        .text_styles
+        .get_mut(&egui::TextStyle::Body)
+        .unwrap()
+        .size = 16.;
+    style
+        .text_styles
+        .get_mut(&egui::TextStyle::Heading)
+        .unwrap()
+        .size = 28.;
+    style
+        .text_styles
+        .get_mut(&egui::TextStyle::Button)
+        .unwrap()
+        .size = 18.;
+    ctx.set_style(style);
 }
 
 impl eframe::App for AMEApp {
@@ -76,11 +105,15 @@ impl eframe::App for AMEApp {
                     .striped(true)
                     .show(ui, |ui| {
                         ui.label("Set new lockscreen image");
-                        if ui.button("🗁 Browse").clicked() {}
+                        if ui.button("🗁 Browse").clicked() {
+                            dbg!(browse_image_file());
+                        }
                         ui.end_row();
 
                         ui.label("Set new profile image");
-                        if ui.button("🗁 Browse").clicked() {}
+                        if ui.button("🗁 Browse").clicked() {
+                            dbg!(browse_image_file());
+                        }
                         ui.end_row();
                     });
             });
@@ -95,11 +128,11 @@ impl eframe::App for AMEApp {
                     .spacing([40., 4.])
                     .striped(true)
                     .show(ui, |ui| {
-                        ui.label("Enable username login requirement");
+                        ui.label("Username prompt on login");
                         ui.add(super::widgets::Switch::new(username_login));
                         ui.end_row();
 
-                        ui.label("Enable AutoLogon");
+                        ui.label("AutoLogon");
                         ui.add(super::widgets::Switch::new(autologon));
                         ui.end_row();
                     });
