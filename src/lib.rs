@@ -1,1 +1,2 @@
-pub mod gui;
+mod gui;
+pub use gui::AMEApp;

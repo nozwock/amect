@@ -3,14 +3,17 @@
 // When compiling natively
 #[cfg(not(target_arch = "wasm32"))]
 fn main() {
-    use amect::gui::App;
+    use amect::AMEApp;
+    use eframe::epaint::Vec2;
 
     let native_options = eframe::NativeOptions {
+        initial_window_size: Some(Vec2::new(500., 400.)),
+        min_window_size: Some(Vec2::new(400., 200.)),
         ..Default::default()
     };
     eframe::run_native(
-        "amect",
+        "Central AME toolkit",
         native_options,
-        Box::new(|cc| Box::new(App::new(cc))),
+        Box::new(|cc| Box::new(AMEApp::new(cc))),
     );
 }
