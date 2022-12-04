@@ -5,7 +5,7 @@ use {
     windows::{
         core::{PCWSTR, PWSTR},
         Win32::{
-            NetworkManagement::NetManagement::NetUserSetInfo,
+            NetworkManagement::NetManagement::{NERR_Success, NERR_UserNotFound, NetUserSetInfo},
             System::WindowsProgramming::GetUserNameW,
         },
     },
@@ -42,10 +42,10 @@ pub fn get_username() -> Option<String> {
 
 // #[cfg(windows)]
 /// Returns `None` if username was changed in the active session.
-pub fn get_session_username() -> Option<String> {
+pub fn get_session_domain_and_username() -> Option<(String, String)> {
     str::from_utf8(
-        Command::new("cmd")
-            .args(&["/C", "wmic computersystem get username"])
+        Command::new("WMIC")
+            .args(&["computersystem", "get", "username"])
             .output()
             .ok()?
             .stdout
@@ -56,35 +56,48 @@ pub fn get_session_username() -> Option<String> {
         raw.trim().lines().last().and_then(|desktop_user| {
             desktop_user
                 .split_once('\\')
-                .and_then(|(_desktop, username)| Some(username.to_owned()))
+                .and_then(|(desktop, username)| Some((desktop.to_owned(), username.to_owned())))
         })
     })
 }
 
-pub fn get_domainname() -> Option<String> {
-    todo!()
-}
-
 // #[cfg(windows)]
-// ! doesn't work yet
 pub fn set_username(curr: &str, new: &str) -> Result<()> {
-    // https://learn.microsoft.com/en-us/windows/win32/api/lmaccess/nf-lmaccess-netusersetinfo
+    let result = Command::new("WMIC")
+        .args(&[
+            "useraccount",
+            "where",
+            format!("name='{}'", curr).as_str(),
+            "rename",
+            new,
+        ])
+        .status()?;
 
-    let servername = PCWSTR::null();
-    let curr = curr.encode_utf16().collect::<Vec<_>>();
-    let username = PCWSTR(curr.as_ptr());
-    let level = 1011_u32;
-    let buf = new.as_ptr();
-
-    let result = unsafe { NetUserSetInfo(servername, username, level, buf, None) };
-
-    dbg!(&result);
-
-    if result != 0 {
-        bail!("failed to set username");
+    if !result.success() {
+        bail!("failed to set username; {}", result);
     }
 
     Ok(())
+}
+
+// #[cfg(windows)]
+// https://learn.microsoft.com/en-us/windows/win32/api/lmaccess/nf-lmaccess-netusersetinfo
+// ! doesn't work idk why
+fn _set_username(curr: &str, new: &str) -> Result<()> {
+    let curr = curr.encode_utf16().collect::<Vec<_>>();
+
+    let username = PCWSTR(curr.as_ptr());
+    let buf = new.as_ptr();
+
+    let result = unsafe { NetUserSetInfo(PCWSTR::null(), username, 1011_u32, buf, None) };
+
+    if result == NERR_Success {
+        return Ok(());
+    } else if result == NERR_UserNotFound {
+        bail!("username not found");
+    }
+
+    bail!("failed to set username; {}", result);
 }
 
 // #[cfg(windows)]
