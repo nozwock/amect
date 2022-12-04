@@ -1,10 +1,10 @@
 # amect
 
-Central AME toolkit
+Central AME toolkit (WIP)
 
-Gui for [amecs](https://git.ameliorated.info/Joe/amecs/src/branch/master)
+GUI alternative to [amecs](https://git.ameliorated.info/Joe/amecs/src/branch/master)
 
-## Features parity
+## Feature parity
 - [ ] Change username/password
 - [ ] Change lockscreen image
 - [ ] Change profile image
