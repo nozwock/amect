@@ -1,10 +1,19 @@
-#[cfg(windows)]
+// #[cfg(windows)]
 use {
-    std::slice,
-    windows::{core::PWSTR, Win32::System::WindowsProgramming::GetUserNameW},
+    anyhow::{bail, Result},
+    std::{process::Command, slice, str},
+    windows::{
+        core::{PCWSTR, PWSTR},
+        Win32::{
+            NetworkManagement::NetManagement::NetUserSetInfo,
+            System::WindowsProgramming::GetUserNameW,
+        },
+    },
 };
 
-#[cfg(windows)]
+// * #[cfg(windows)] attrs are commented temporarily bcz I'm developing on unix
+
+// #[cfg(windows)]
 /// Retrieves the name of the user associated with the current thread.
 pub fn get_username() -> Option<String> {
     // https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getusernamew
@@ -29,4 +38,57 @@ pub fn get_username() -> Option<String> {
     }
 
     user_name
+}
+
+// #[cfg(windows)]
+/// Returns `None` if username was changed in the active session.
+pub fn get_session_username() -> Option<String> {
+    str::from_utf8(
+        Command::new("cmd")
+            .args(&["/C", "wmic computersystem get username"])
+            .output()
+            .ok()?
+            .stdout
+            .as_slice(),
+    )
+    .ok()
+    .and_then(|raw| {
+        raw.trim().lines().last().and_then(|desktop_user| {
+            desktop_user
+                .split_once('\\')
+                .and_then(|(_desktop, username)| Some(username.to_owned()))
+        })
+    })
+}
+
+pub fn get_domainname() -> Option<String> {
+    todo!()
+}
+
+// #[cfg(windows)]
+// ! doesn't work yet
+pub fn set_username(curr: &str, new: &str) -> Result<()> {
+    // https://learn.microsoft.com/en-us/windows/win32/api/lmaccess/nf-lmaccess-netusersetinfo
+
+    let servername = PCWSTR::null();
+    let curr = curr.encode_utf16().collect::<Vec<_>>();
+    let username = PCWSTR(curr.as_ptr());
+    let level = 1011_u32;
+    let buf = new.as_ptr();
+
+    let result = unsafe { NetUserSetInfo(servername, username, level, buf, None) };
+
+    dbg!(&result);
+
+    if result != 0 {
+        bail!("failed to set username");
+    }
+
+    Ok(())
+}
+
+// #[cfg(windows)]
+pub fn set_password(username: &str, password: &str) -> Result<()> {
+    // https://learn.microsoft.com/en-us/windows/win32/api/lmaccess/nf-lmaccess-netusersetinfo
+    todo!()
 }

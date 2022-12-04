@@ -16,7 +16,8 @@ features = [
     "Win32_Foundation",
     "Win32_System",
     "Win32_System_WindowsProgramming",
-    "Win32_UI_WindowsAndMessaging",
+    "Win32_NetworkManagement_NetManagement",
+    # "Win32_UI_WindowsAndMessaging",
 ]
 
 [profile.release]

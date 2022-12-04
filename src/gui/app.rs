@@ -8,7 +8,7 @@ pub struct AMEApp {
     user_pass: String,
     admin_pass: String,
     username_login: bool,
-    autologon: bool,
+    autologin: bool,
 }
 
 impl AMEApp {
@@ -71,7 +71,7 @@ impl eframe::App for AMEApp {
             admin_pass,
             username,
             username_login,
-            autologon,
+            autologin,
         } = self;
 
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -132,8 +132,8 @@ impl eframe::App for AMEApp {
                         ui.add(super::widgets::Switch::new(username_login));
                         ui.end_row();
 
-                        ui.label("AutoLogon");
-                        ui.add(super::widgets::Switch::new(autologon));
+                        ui.label("Auto login");
+                        ui.add(super::widgets::Switch::new(autologin));
                         ui.end_row();
                     });
             });
