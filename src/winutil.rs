@@ -1,7 +1,8 @@
 // #[cfg(windows)]
 use {
     anyhow::{bail, Result},
-    std::{process::Command, slice, str},
+    std::{ffi::CString, process::Command, slice, str},
+    widestring::U16CString,
     windows::{
         core::{PCWSTR, PWSTR},
         Win32::{
@@ -15,6 +16,8 @@ use {
 
 // #[cfg(windows)]
 /// Retrieves the name of the user associated with the current thread.
+///
+/// Uses `GetUserNameW` API to get the username.
 pub fn get_username() -> Option<String> {
     // https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getusernamew
     // https://stackoverflow.com/questions/68716774/
@@ -41,8 +44,10 @@ pub fn get_username() -> Option<String> {
 }
 
 // #[cfg(windows)]
-/// Returns `None` if username was changed in the active session.
-pub fn get_session_domain_and_username() -> Option<(String, String)> {
+/// Returns a tuple containing `domainname` & `username`.
+///
+/// **NOTE:** returns `None` if username was changed in the active session.
+pub fn wmic_get_session_user() -> Option<(String, String)> {
     str::from_utf8(
         Command::new("WMIC")
             .args(&["computersystem", "get", "username"])
@@ -62,7 +67,8 @@ pub fn get_session_domain_and_username() -> Option<(String, String)> {
 }
 
 // #[cfg(windows)]
-pub fn set_username(curr: &str, new: &str) -> Result<()> {
+/// Set new username for a user with `curr` as their username.
+pub fn wmic_set_username(curr: &str, new: &str) -> Result<()> {
     let result = Command::new("WMIC")
         .args(&[
             "useraccount",
@@ -81,13 +87,28 @@ pub fn set_username(curr: &str, new: &str) -> Result<()> {
 }
 
 // #[cfg(windows)]
-// https://learn.microsoft.com/en-us/windows/win32/api/lmaccess/nf-lmaccess-netusersetinfo
-// ! doesn't work idk why
-fn _set_username(curr: &str, new: &str) -> Result<()> {
-    let curr = curr.encode_utf16().collect::<Vec<_>>();
+pub fn net_set_password(username: &str, password: &str) -> Result<()> {
+    let result = Command::new("NET")
+        .args(&["user", username, password])
+        .status()?;
 
-    let username = PCWSTR(curr.as_ptr());
-    let buf = new.as_ptr();
+    if !result.success() {
+        bail!("failed to set password for {}; {}", username, result);
+    }
+
+    Ok(())
+}
+
+// #[cfg(windows)]
+// ! doesn't work idk why; figure this out later
+/// Uses `NetUserSetInfo` API to get the username.
+pub fn set_username(curr: &str, new: &str) -> Result<()> {
+    // https://learn.microsoft.com/en-us/windows/win32/api/lmaccess/nf-lmaccess-netusersetinfo
+    let curr = U16CString::from_str(curr)?;
+    let new = CString::new(new)?;
+
+    let username = PCWSTR::from_raw(curr.as_ptr());
+    let buf = new.as_ptr() as *const u8;
 
     let result = unsafe { NetUserSetInfo(PCWSTR::null(), username, 1011_u32, buf, None) };
 
@@ -98,10 +119,4 @@ fn _set_username(curr: &str, new: &str) -> Result<()> {
     }
 
     bail!("failed to set username; {}", result);
-}
-
-// #[cfg(windows)]
-pub fn set_password(username: &str, password: &str) -> Result<()> {
-    // https://learn.microsoft.com/en-us/windows/win32/api/lmaccess/nf-lmaccess-netusersetinfo
-    todo!()
 }
