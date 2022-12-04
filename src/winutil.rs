@@ -120,3 +120,33 @@ pub fn set_username(curr: &str, new: &str) -> Result<()> {
 
     bail!("failed to set username; {}", result);
 }
+
+// #[cfg(windows)]
+/// Have a look here-
+/// https://git.ameliorated.info/Joe/amecs/src/branch/master#user-elevation
+pub fn net_user_elevate(username: &str) -> Result<()> {
+    let result = Command::new("NET")
+        .args(&["localgroup", "administrators", username, "/add"])
+        .status()?;
+
+    if !result.success() {
+        bail!("failed to elevate for {}; {}", username, result);
+    }
+
+    Ok(())
+}
+
+// #[cfg(windows)]
+/// Have a look here-
+/// https://git.ameliorated.info/Joe/amecs/src/branch/master#user-elevation
+pub fn net_user_unelevate(username: &str) -> Result<()> {
+    let result = Command::new("NET")
+        .args(&["localgroup", "administrators", username, "/delete"])
+        .status()?;
+
+    if !result.success() {
+        bail!("failed to elevate for {}; {}", username, result);
+    }
+
+    Ok(())
+}
