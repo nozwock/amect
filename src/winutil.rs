@@ -6,7 +6,9 @@ use {
     windows::{
         core::{PCWSTR, PWSTR},
         Win32::{
-            NetworkManagement::NetManagement::{NERR_Success, NERR_UserNotFound, NetUserSetInfo},
+            NetworkManagement::NetManagement::{
+                NERR_Success, NERR_UserNotFound, NetUserSetInfo, USER_INFO_0,
+            },
             System::WindowsProgramming::GetUserNameW,
         },
     },
@@ -21,7 +23,7 @@ use {
 pub fn get_username() -> Option<String> {
     // https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getusernamew
     // https://stackoverflow.com/questions/68716774/
-    let mut cb_buffer = 257_u32;
+    let mut cb_buffer: u32 = 257;
 
     // Create a buffer of the required size
     let mut buffer = Vec::<u16>::with_capacity(cb_buffer as usize);
@@ -41,6 +43,35 @@ pub fn get_username() -> Option<String> {
     }
 
     user_name
+}
+
+// #[cfg(windows)]
+/// Uses `NetUserSetInfo` API to get the username.
+pub fn set_username(curr: &str, new: &str) -> Result<()> {
+    // API docs
+    // https://learn.microsoft.com/en-us/windows/win32/api/lmaccess/nf-lmaccess-netusersetinfo
+
+    // An example on how to use the NewUserSetInfo thanks to Rafael
+    // https://gist.github.com/riverar/f49115e6b2736ff9f9adc3ead5919d5d
+
+    let curr = U16CString::from_str(curr)?;
+    let mut new = U16CString::from_str(new)?;
+
+    let username = PCWSTR::from_raw(curr.as_ptr());
+    let new = PWSTR::from_raw(new.as_mut_ptr());
+
+    let mut buf = USER_INFO_0::default();
+    buf.usri0_name = new;
+
+    let result = unsafe { NetUserSetInfo(None, username, 0, &buf as *const _ as _, None) };
+
+    if result == NERR_Success {
+        return Ok(());
+    } else if result == NERR_UserNotFound {
+        bail!("username not found");
+    }
+
+    bail!("failed to set username; {}", result);
 }
 
 // #[cfg(windows)]
@@ -97,28 +128,6 @@ pub fn net_set_password(username: &str, password: &str) -> Result<()> {
     }
 
     Ok(())
-}
-
-// #[cfg(windows)]
-// ! doesn't work idk why; figure this out later
-/// Uses `NetUserSetInfo` API to get the username.
-pub fn set_username(curr: &str, new: &str) -> Result<()> {
-    // https://learn.microsoft.com/en-us/windows/win32/api/lmaccess/nf-lmaccess-netusersetinfo
-    let curr = U16CString::from_str(curr)?;
-    let new = CString::new(new)?;
-
-    let username = PCWSTR::from_raw(curr.as_ptr());
-    let buf = new.as_ptr() as *const u8;
-
-    let result = unsafe { NetUserSetInfo(PCWSTR::null(), username, 1011_u32, buf, None) };
-
-    if result == NERR_Success {
-        return Ok(());
-    } else if result == NERR_UserNotFound {
-        bail!("username not found");
-    }
-
-    bail!("failed to set username; {}", result);
 }
 
 // #[cfg(windows)]
