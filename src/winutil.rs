@@ -1,13 +1,13 @@
 // #[cfg(windows)]
 use {
     anyhow::{bail, Result},
-    std::{ffi::CString, process::Command, slice, str},
+    std::{process::Command, slice, str},
     widestring::U16CString,
     windows::{
         core::{PCWSTR, PWSTR},
         Win32::{
             NetworkManagement::NetManagement::{
-                NERR_Success, NERR_UserNotFound, NetUserSetInfo, USER_INFO_0,
+                NERR_Success, NERR_UserNotFound, NetUserSetInfo, USER_INFO_0, USER_INFO_1003,
             },
             System::WindowsProgramming::GetUserNameW,
         },
@@ -46,7 +46,7 @@ pub fn get_username() -> Option<String> {
 }
 
 // #[cfg(windows)]
-/// Uses `NetUserSetInfo` API to get the username.
+/// Uses `NetUserSetInfo` API to set the username.
 pub fn set_username(curr: &str, new: &str) -> Result<()> {
     // API docs
     // https://learn.microsoft.com/en-us/windows/win32/api/lmaccess/nf-lmaccess-netusersetinfo
@@ -57,13 +57,18 @@ pub fn set_username(curr: &str, new: &str) -> Result<()> {
     let curr = U16CString::from_str(curr)?;
     let mut new = U16CString::from_str(new)?;
 
-    let username = PCWSTR::from_raw(curr.as_ptr());
-    let new = PWSTR::from_raw(new.as_mut_ptr());
-
     let mut buf = USER_INFO_0::default();
-    buf.usri0_name = new;
+    buf.usri0_name = PWSTR::from_raw(new.as_mut_ptr());
 
-    let result = unsafe { NetUserSetInfo(None, username, 0, &buf as *const _ as _, None) };
+    let result = unsafe {
+        NetUserSetInfo(
+            None,
+            PCWSTR::from_raw(curr.as_ptr()),
+            0,
+            &buf as *const _ as _,
+            None,
+        )
+    };
 
     if result == NERR_Success {
         return Ok(());
@@ -72,6 +77,34 @@ pub fn set_username(curr: &str, new: &str) -> Result<()> {
     }
 
     bail!("failed to set username; {}", result);
+}
+
+// #[cfg(windows)]
+/// Uses `NetUserSetInfo` API to set the password.
+pub fn set_password(username: &str, password: &str) -> Result<()> {
+    let username = U16CString::from_str(username)?;
+    let mut password = U16CString::from_str(password)?;
+
+    let mut buf = USER_INFO_1003::default();
+    buf.usri1003_password = PWSTR::from_raw(password.as_mut_ptr());
+
+    let result = unsafe {
+        NetUserSetInfo(
+            None,
+            PCWSTR::from_raw(username.as_ptr()),
+            1003,
+            &buf as *const _ as _,
+            None,
+        )
+    };
+
+    if result == NERR_Success {
+        return Ok(());
+    } else if result == NERR_UserNotFound {
+        bail!("username not found");
+    }
+
+    bail!("failed to set password; {}", result);
 }
 
 // #[cfg(windows)]
