@@ -12,6 +12,7 @@ use {
             System::WindowsProgramming::GetUserNameW,
         },
     },
+    winreg::{enums::HKEY_LOCAL_MACHINE, RegKey},
 };
 
 // * #[cfg(windows)] attrs are commented temporarily bcz I'm developing on unix
@@ -191,4 +192,24 @@ pub fn net_user_unelevate(username: &str) -> Result<()> {
     }
 
     Ok(())
+}
+
+// #[cfg(windows)]
+pub fn disable_username_login_req() -> Result<()> {
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+    let (key, _disp) =
+        hklm.create_subkey(r#"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"#)?;
+
+    key.delete_value("dontdisplaylastusername")
+        .map_err(Into::into)
+}
+
+// #[cfg(windows)]
+pub fn enable_username_login_req() -> Result<()> {
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+    let (key, _disp) =
+        hklm.create_subkey(r#"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"#)?;
+
+    key.set_value("dontdisplaylastusername", &1_u32)
+        .map_err(Into::into)
 }
