@@ -132,6 +132,27 @@ pub fn wmic_get_session_user() -> Option<(String, String)> {
 }
 
 // #[cfg(windows)]
+/// **NOTE:** returns `None` if username was changed in the active session.
+pub fn wmic_get_user_sid(username: &str) -> Option<String> {
+    str::from_utf8(
+        Command::new("WMIC")
+            .args(&[
+                "useraccount",
+                "where",
+                format!("name='{}'", username).as_str(),
+                "get",
+                "sid",
+            ])
+            .output()
+            .ok()?
+            .stdout
+            .as_slice(),
+    )
+    .ok()
+    .and_then(|raw| raw.trim().lines().last().map(|s| s.to_owned()))
+}
+
+// #[cfg(windows)]
 /// Set new username for a user with `curr` as their username.
 pub fn wmic_set_username(curr: &str, new: &str) -> Result<()> {
     let result = Command::new("WMIC")
