@@ -45,7 +45,7 @@ fn main() -> Result<()> {
             amect::args::Cli::Users(users) => {
                 if users == Default::default() {
                     // default interactive mode
-                    println!("Interactive mode unimplemented");
+                    unimplemented!();
                     return Ok(());
                 }
 
@@ -69,7 +69,7 @@ fn main() -> Result<()> {
                 }
                 if let Some(elevate_user) = users.elevate_user {
                     match elevate_user {
-                        true => net_user_elevate(&session_domain)?,
+                        true => net_user_elevate(&session_username)?,
                         false => net_user_unelevate(&session_username)?,
                     };
                 }
@@ -83,7 +83,7 @@ fn main() -> Result<()> {
             amect::args::Cli::Visuals(visuals) => {
                 if visuals == Default::default() {
                     // default interactive mode
-                    println!("Interactive mode unimplemented");
+                    unimplemented!();
                     return Ok(());
                 }
 
@@ -97,7 +97,7 @@ fn main() -> Result<()> {
             amect::args::Cli::Login(login) => {
                 if login == Default::default() {
                     // default interactive mode
-                    println!("Interactive mode unimplemented");
+                    unimplemented!();
                     return Ok(());
                 }
 
