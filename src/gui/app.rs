@@ -2,7 +2,7 @@ use crate::util::browse_image_file;
 use eframe::egui;
 
 #[derive(Debug, Default)]
-pub struct AMEApp {
+pub struct AmectApp {
     // user states
     username: String,
     user_pass: String,
@@ -11,7 +11,7 @@ pub struct AMEApp {
     autologin: bool,
 }
 
-impl AMEApp {
+impl AmectApp {
     /// Called once before the first frame.
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         // This is also where you can customized the look at feel of egui using
@@ -56,7 +56,7 @@ fn configure_fonts(ctx: &egui::Context) {
     ctx.set_style(style);
 }
 
-impl eframe::App for AMEApp {
+impl eframe::App for AmectApp {
     /// Called by the frame work to save state before shutdown.
     #[cfg(feature = "persistence")]
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
@@ -77,6 +77,8 @@ impl eframe::App for AMEApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             if ui.button("Apply changes").clicked() {}
             ui.separator();
+
+            ui.label("GUI is not really functional atm; WIP");
 
             ui.collapsing("User", |ui| {
                 egui::Grid::new("user_grid")
