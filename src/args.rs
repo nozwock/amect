@@ -18,13 +18,13 @@ pub enum Commands {
 
 #[derive(Debug, Subcommand)]
 pub enum Cli {
-    Users(Users),
-    Visuals(Visuals),
+    User(User),
+    Visual(Visual),
     Login(Login),
 }
 
-#[derive(Debug, Args, Default, PartialEq)]
-pub struct Users {
+#[derive(Debug, Args, Default, PartialEq, Eq)]
+pub struct User {
     /// Set new username
     #[arg(long, value_name = "STRING")]
     pub username: Option<String>,
@@ -39,8 +39,8 @@ pub struct Users {
     pub elevate_user: Option<bool>,
 }
 
-#[derive(Debug, Args, Default, PartialEq)]
-pub struct Visuals {
+#[derive(Debug, Args, Default, PartialEq, Eq)]
+pub struct Visual {
     /// Set new profile image
     #[arg(long, value_name = "FILE")]
     pub profile_img: Option<PathBuf>,
@@ -49,7 +49,7 @@ pub struct Visuals {
     pub lockscreen_img: Option<PathBuf>,
 }
 
-#[derive(Debug, Args, Default, PartialEq)]
+#[derive(Debug, Args, Default, PartialEq, Eq)]
 pub struct Login {
     #[arg(long, value_name = "BOOL")]
     pub require_username: Option<bool>,

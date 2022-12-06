@@ -42,32 +42,31 @@ fn main() -> Result<()> {
             );
         }
         Some(amect::args::Commands::Cli(cli)) => match cli {
-            amect::args::Cli::Users(users) => {
-                if users == Default::default() {
+            amect::args::Cli::User(user) => {
+                if user == Default::default() {
                     // default interactive mode
                     unimplemented!();
-                    return Ok(());
                 }
 
-                let (session_domain, session_username) = wmic_get_session_user().context(
+                let (_session_domain, session_username) = wmic_get_session_user().context(
                     "\
                 failed to retrieve username, it's likely that username has been recently modified. \
                 Please try again after a relogin.",
                 )?;
 
-                if let Some(username) = users.username {
+                if let Some(username) = user.username {
                     set_username(&session_username, &username)?;
                 }
-                if let Some(password) = users.user_password {
+                if let Some(password) = user.user_password {
                     set_password(&session_username, &password)?;
                 }
-                if let Some(password) = users.admin_password {
+                if let Some(password) = user.admin_password {
                     set_password(
                         &get_username().context("failed to retrieve username")?,
                         &password,
                     )?;
                 }
-                if let Some(elevate_user) = users.elevate_user {
+                if let Some(elevate_user) = user.elevate_user {
                     match elevate_user {
                         true => net_user_elevate(&session_username)?,
                         false => net_user_unelevate(&session_username)?,
@@ -77,17 +76,16 @@ fn main() -> Result<()> {
                 // print msg when no errors
                 println!("Changes have been successfully made!");
             }
-            amect::args::Cli::Visuals(visuals) => {
-                if visuals == Default::default() {
+            amect::args::Cli::Visual(visual) => {
+                if visual == Default::default() {
                     // default interactive mode
                     unimplemented!();
-                    return Ok(());
                 }
 
-                if let Some(profile_img) = users.profile_img {
+                if let Some(_profile_img) = visual.profile_img {
                     unimplemented!();
                 }
-                if let Some(lockscreen_img) = visuals.lockscreen_img {
+                if let Some(_lockscreen_img) = visual.lockscreen_img {
                     unimplemented!();
                 }
 
@@ -98,7 +96,6 @@ fn main() -> Result<()> {
                 if login == Default::default() {
                     // default interactive mode
                     unimplemented!();
-                    return Ok(());
                 }
 
                 if let Some(require_username) = login.require_username {
@@ -107,7 +104,7 @@ fn main() -> Result<()> {
                         false => disable_username_login_req()?,
                     };
                 }
-                if let Some(auto_login) = login.auto_login {
+                if let Some(_auto_login) = login.auto_login {
                     unimplemented!();
                 }
 

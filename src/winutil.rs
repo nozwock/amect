@@ -58,8 +58,9 @@ pub fn set_username(curr: &str, new: &str) -> Result<()> {
     let curr = U16CString::from_str(curr)?;
     let mut new = U16CString::from_str(new)?;
 
-    let mut buf = USER_INFO_0::default();
-    buf.usri0_name = PWSTR::from_raw(new.as_mut_ptr());
+    let buf = USER_INFO_0 {
+        usri0_name: PWSTR::from_raw(new.as_mut_ptr()),
+    };
 
     let result = unsafe {
         NetUserSetInfo(
@@ -86,8 +87,9 @@ pub fn set_password(username: &str, password: &str) -> Result<()> {
     let username = U16CString::from_str(username)?;
     let mut password = U16CString::from_str(password)?;
 
-    let mut buf = USER_INFO_1003::default();
-    buf.usri1003_password = PWSTR::from_raw(password.as_mut_ptr());
+    let buf = USER_INFO_1003 {
+        usri1003_password: PWSTR::from_raw(password.as_mut_ptr()),
+    };
 
     let result = unsafe {
         NetUserSetInfo(
@@ -115,7 +117,7 @@ pub fn set_password(username: &str, password: &str) -> Result<()> {
 pub fn wmic_get_session_user() -> Option<(String, String)> {
     str::from_utf8(
         Command::new("WMIC")
-            .args(&["computersystem", "get", "username"])
+            .args(["computersystem", "get", "username"])
             .output()
             .ok()?
             .stdout
@@ -126,7 +128,7 @@ pub fn wmic_get_session_user() -> Option<(String, String)> {
         raw.trim().lines().last().and_then(|desktop_user| {
             desktop_user
                 .split_once('\\')
-                .and_then(|(desktop, username)| Some((desktop.to_owned(), username.to_owned())))
+                .map(|(desktop, username)| (desktop.to_owned(), username.to_owned()))
         })
     })
 }
@@ -136,7 +138,7 @@ pub fn wmic_get_session_user() -> Option<(String, String)> {
 pub fn wmic_get_user_sid(username: &str) -> Option<String> {
     str::from_utf8(
         Command::new("WMIC")
-            .args(&[
+            .args([
                 "useraccount",
                 "where",
                 format!("name='{}'", username).as_str(),
@@ -156,7 +158,7 @@ pub fn wmic_get_user_sid(username: &str) -> Option<String> {
 /// Set new username for a user with `curr` as their username.
 pub fn wmic_set_username(curr: &str, new: &str) -> Result<()> {
     let result = Command::new("WMIC")
-        .args(&[
+        .args([
             "useraccount",
             "where",
             format!("name='{}'", curr).as_str(),
@@ -175,7 +177,7 @@ pub fn wmic_set_username(curr: &str, new: &str) -> Result<()> {
 // #[cfg(windows)]
 pub fn net_set_password(username: &str, password: &str) -> Result<()> {
     let result = Command::new("NET")
-        .args(&["user", username, password])
+        .args(["user", username, password])
         .status()?;
 
     if !result.success() {
@@ -190,7 +192,7 @@ pub fn net_set_password(username: &str, password: &str) -> Result<()> {
 /// https://git.ameliorated.info/Joe/amecs/src/branch/master#user-elevation
 pub fn net_user_elevate(username: &str) -> Result<()> {
     let result = Command::new("NET")
-        .args(&["localgroup", "administrators", username, "/add"])
+        .args(["localgroup", "administrators", username, "/add"])
         .status()?;
 
     if !result.success() {
@@ -205,7 +207,7 @@ pub fn net_user_elevate(username: &str) -> Result<()> {
 /// https://git.ameliorated.info/Joe/amecs/src/branch/master#user-elevation
 pub fn net_user_unelevate(username: &str) -> Result<()> {
     let result = Command::new("NET")
-        .args(&["localgroup", "administrators", username, "/delete"])
+        .args(["localgroup", "administrators", username, "/delete"])
         .status()?;
 
     if !result.success() {
