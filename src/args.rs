@@ -34,15 +34,16 @@ pub struct Users {
     /// Set new admin password
     #[arg(long, value_name = "STRING")]
     pub admin_password: Option<String>,
-    /// Set new profile image
-    #[arg(long, value_name = "FILE")]
-    pub profile_img: Option<PathBuf>,
+    /// Add or remove user from admin group
     #[arg(long, value_name = "BOOL")]
     pub elevate_user: Option<bool>,
 }
 
 #[derive(Debug, Args, Default, PartialEq)]
 pub struct Visuals {
+    /// Set new profile image
+    #[arg(long, value_name = "FILE")]
+    pub profile_img: Option<PathBuf>,
     /// Set new lockscreen image
     #[arg(long, value_name = "FILE")]
     pub lockscreen_img: Option<PathBuf>,

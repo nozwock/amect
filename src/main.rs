@@ -73,9 +73,6 @@ fn main() -> Result<()> {
                         false => net_user_unelevate(&session_username)?,
                     };
                 }
-                if let Some(profile_img) = users.profile_img {
-                    unimplemented!();
-                }
 
                 // print msg when no errors
                 println!("Changes have been successfully made!");
@@ -87,6 +84,9 @@ fn main() -> Result<()> {
                     return Ok(());
                 }
 
+                if let Some(profile_img) = users.profile_img {
+                    unimplemented!();
+                }
                 if let Some(lockscreen_img) = visuals.lockscreen_img {
                     unimplemented!();
                 }
