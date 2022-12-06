@@ -23,7 +23,7 @@ pub enum Cli {
     Login(Login),
 }
 
-#[derive(Debug, Args)]
+#[derive(Debug, Args, Default, PartialEq)]
 pub struct Users {
     /// Set new username
     #[arg(long, value_name = "STRING")]
@@ -41,14 +41,14 @@ pub struct Users {
     pub elevate_user: Option<bool>,
 }
 
-#[derive(Debug, Args)]
+#[derive(Debug, Args, Default, PartialEq)]
 pub struct Visuals {
     /// Set new lockscreen image
     #[arg(long, value_name = "FILE")]
     pub lockscreen_img: Option<PathBuf>,
 }
 
-#[derive(Debug, Args)]
+#[derive(Debug, Args, Default, PartialEq)]
 pub struct Login {
     #[arg(long, value_name = "BOOL")]
     pub require_username: Option<bool>,

@@ -15,7 +15,7 @@ use {
     winreg::{enums::HKEY_LOCAL_MACHINE, RegKey},
 };
 
-// * #[cfg(windows)] attrs are commented temporarily bcz I'm developing on unix
+// * #[cfg(windows)] attrs are commented temporarily bcz I'm developing on unix; yes it's a pain
 
 // #[cfg(windows)]
 /// Retrieves the name of the user associated with the current thread.

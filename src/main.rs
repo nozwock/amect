@@ -5,7 +5,14 @@ use anyhow::Result;
 // When compiling natively
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> Result<()> {
-    use amect::{args::AmectCli, AmectApp};
+    use amect::{
+        winutil::{
+            disable_username_login_req, enable_username_login_req, get_username, net_user_elevate,
+            net_user_unelevate, set_password, set_username, wmic_get_session_user,
+        },
+        AmectApp, AmectCli,
+    };
+    use anyhow::Context;
     use clap::Parser;
     use eframe::epaint::Vec2;
 
@@ -35,9 +42,78 @@ fn main() -> Result<()> {
             );
         }
         Some(amect::args::Commands::Cli(cli)) => match cli {
-            amect::args::Cli::Users(users) => {}
-            amect::args::Cli::Visuals(visuals) => {}
-            amect::args::Cli::Login(login) => {}
+            amect::args::Cli::Users(users) => {
+                if users == Default::default() {
+                    // default interactive mode
+                    println!("Interactive mode unimplemented");
+                    return Ok(());
+                }
+
+                let (session_domain, session_username) = wmic_get_session_user().context(
+                    "\
+                failed to retrieve username, it's likely that username has been recently modified. \
+                Please try again after a relogin.",
+                )?;
+
+                if let Some(username) = users.username {
+                    set_username(&session_username, &username)?;
+                }
+                if let Some(password) = users.user_password {
+                    set_password(&session_username, &password)?;
+                }
+                if let Some(password) = users.admin_password {
+                    set_password(
+                        &get_username().context("failed to retrieve username")?,
+                        &password,
+                    )?;
+                }
+                if let Some(elevate_user) = users.elevate_user {
+                    match elevate_user {
+                        true => net_user_elevate(&session_domain)?,
+                        false => net_user_unelevate(&session_username)?,
+                    };
+                }
+                if let Some(profile_img) = users.profile_img {
+                    unimplemented!();
+                }
+
+                // print msg when no errors
+                println!("Changes have been successfully made!");
+            }
+            amect::args::Cli::Visuals(visuals) => {
+                if visuals == Default::default() {
+                    // default interactive mode
+                    println!("Interactive mode unimplemented");
+                    return Ok(());
+                }
+
+                if let Some(lockscreen_img) = visuals.lockscreen_img {
+                    unimplemented!();
+                }
+
+                // print msg when no errors
+                println!("Changes have been successfully made!");
+            }
+            amect::args::Cli::Login(login) => {
+                if login == Default::default() {
+                    // default interactive mode
+                    println!("Interactive mode unimplemented");
+                    return Ok(());
+                }
+
+                if let Some(require_username) = login.require_username {
+                    match require_username {
+                        true => enable_username_login_req()?,
+                        false => disable_username_login_req()?,
+                    };
+                }
+                if let Some(auto_login) = login.auto_login {
+                    unimplemented!();
+                }
+
+                // print msg when no errors
+                println!("Changes have been successfully made!");
+            }
         },
     }
 
