@@ -2,7 +2,9 @@
 
 Central AME toolkit (WIP)
 
-GUI alternative to [amecs](https://git.ameliorated.info/Joe/amecs/src/branch/master)
+An alternative to [amecs](https://git.ameliorated.info/Joe/amecs/src/branch/master)
+
+> GUI is planned if I get time for it
 
 ## Feature parity (backend)
 - [x] Change username/password

@@ -45,7 +45,6 @@ dependencies = [
  "native-dialog",
  "widestring 1.0.2",
  "windows",
- "winreg",
 ]
 
 [[package]]
@@ -1968,15 +1967,6 @@ dependencies = [
  "web-sys",
  "windows-sys 0.36.1",
  "x11-dl",
-]
-
-[[package]]
-name = "winreg"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80d0f4e272c85def139476380b12f9ac60926689dd2e01d4923222f40580869d"
-dependencies = [
- "winapi",
 ]
 
 [[package]]
