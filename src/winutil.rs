@@ -10,12 +10,17 @@ use {
                 NERR_Success, NERR_UserNotFound, NetUserSetInfo, USER_INFO_0, USER_INFO_1003,
             },
             System::WindowsProgramming::GetUserNameW,
+            UI::Shell::IsUserAnAdmin,
         },
     },
     winreg::{enums::HKEY_LOCAL_MACHINE, RegKey},
 };
 
 // * #[cfg(windows)] attrs are commented temporarily bcz I'm developing on unix; yes it's a pain
+
+pub fn is_admin() -> bool {
+    unsafe { IsUserAnAdmin().as_bool() }
+}
 
 // #[cfg(windows)]
 /// Retrieves the name of the user associated with the current thread.
