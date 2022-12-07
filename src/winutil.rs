@@ -241,3 +241,24 @@ pub fn enable_username_login_req() -> Result<()> {
     key.set_value("dontdisplaylastusername", &1_u32)
         .map_err(Into::into)
 }
+
+pub fn set_lockscreen_blur(enable: bool) -> Result<()> {
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+    let (key, _disp) = hklm.create_subkey(r#"SOFTWARE\Policies\Microsoft\Windows\System"#)?;
+
+    if enable {
+        key.set_value("DisableAcrylicBackgroundOnLogon", &1_u32)
+            .map_err(Into::into)
+    } else {
+        key.delete_value("DisableAcrylicBackgroundOnLogon")
+            .map_err(Into::into)
+    }
+}
+
+fn set_lockscreen_img(user_sid: &str, image: AsRef<Path>) -> Result<()> {
+    todo!()
+}
+
+fn set_profile_img(user_sid: &str, image: AsRef<Path>) -> Result<()> {
+    todo!()
+}
