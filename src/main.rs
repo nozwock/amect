@@ -7,9 +7,8 @@ use anyhow::Result;
 fn main() -> Result<()> {
     use amect::{
         winutil::{
-            disable_username_login_req, enable_username_login_req, get_username, is_admin,
-            net_user_elevate, net_user_unelevate, set_password, set_username,
-            wmic_get_session_user,
+            get_username, is_admin, net_set_user_elevated, set_password, set_username,
+            set_username_login_requirement, wmic_get_session_user,
         },
         AmectApp, AmectCli,
     };
@@ -81,10 +80,7 @@ fn main() -> Result<()> {
                         )?;
                     }
                     if let Some(elevate_user) = user.elevate_user {
-                        match elevate_user {
-                            true => net_user_elevate(&session_username)?,
-                            false => net_user_unelevate(&session_username)?,
-                        };
+                        net_set_user_elevated(elevate_user, &session_username)?;
                     }
 
                     // print msg when no errors
@@ -113,10 +109,7 @@ fn main() -> Result<()> {
                     }
 
                     if let Some(require_username) = login.require_username {
-                        match require_username {
-                            true => enable_username_login_req()?,
-                            false => disable_username_login_req()?,
-                        };
+                        set_username_login_requirement(require_username)?;
                     }
                     if let Some(_auto_login) = login.auto_login {
                         unimplemented!();

@@ -1,7 +1,7 @@
 // #[cfg(windows)]
 use {
     anyhow::{bail, Result},
-    std::{process::Command, slice, str},
+    std::{path::Path, process::Command, slice, str},
     widestring::U16CString,
     windows::{
         core::{PCWSTR, PWSTR},
@@ -193,53 +193,36 @@ pub fn net_set_password(username: &str, password: &str) -> Result<()> {
 }
 
 // #[cfg(windows)]
+/// Set user elevated privileges
+///
 /// Have a look here-
 /// https://git.ameliorated.info/Joe/amecs/src/branch/master#user-elevation
-pub fn net_user_elevate(username: &str) -> Result<()> {
+pub fn net_set_user_elevated(enable: bool, username: &str) -> Result<()> {
+    let action = if enable { "/add" } else { "/delete" };
     let result = Command::new("NET")
-        .args(["localgroup", "administrators", username, "/add"])
+        .args(["localgroup", "administrators", username, action])
         .status()?;
 
     if !result.success() {
-        bail!("failed to elevate for {}; {}", username, result);
+        bail!("failed to set permissions for {}; {}", username, result);
     }
 
     Ok(())
 }
 
 // #[cfg(windows)]
-/// Have a look here-
-/// https://git.ameliorated.info/Joe/amecs/src/branch/master#user-elevation
-pub fn net_user_unelevate(username: &str) -> Result<()> {
-    let result = Command::new("NET")
-        .args(["localgroup", "administrators", username, "/delete"])
-        .status()?;
+pub fn set_username_login_requirement(enable: bool) -> Result<()> {
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+    let (key, _disp) =
+        hklm.create_subkey(r#"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"#)?;
 
-    if !result.success() {
-        bail!("failed to elevate for {}; {}", username, result);
+    if enable {
+        key.set_value("dontdisplaylastusername", &1_u32)
+            .map_err(Into::into)
+    } else {
+        key.delete_value("dontdisplaylastusername")
+            .map_err(Into::into)
     }
-
-    Ok(())
-}
-
-// #[cfg(windows)]
-pub fn disable_username_login_req() -> Result<()> {
-    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
-    let (key, _disp) =
-        hklm.create_subkey(r#"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"#)?;
-
-    key.delete_value("dontdisplaylastusername")
-        .map_err(Into::into)
-}
-
-// #[cfg(windows)]
-pub fn enable_username_login_req() -> Result<()> {
-    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
-    let (key, _disp) =
-        hklm.create_subkey(r#"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"#)?;
-
-    key.set_value("dontdisplaylastusername", &1_u32)
-        .map_err(Into::into)
 }
 
 pub fn set_lockscreen_blur(enable: bool) -> Result<()> {
@@ -255,10 +238,10 @@ pub fn set_lockscreen_blur(enable: bool) -> Result<()> {
     }
 }
 
-fn set_lockscreen_img(user_sid: &str, image: AsRef<Path>) -> Result<()> {
+fn set_lockscreen_img(user_sid: &str, image: impl AsRef<Path>) -> Result<()> {
     todo!()
 }
 
-fn set_profile_img(user_sid: &str, image: AsRef<Path>) -> Result<()> {
+fn set_profile_img(user_sid: &str, image: impl AsRef<Path>) -> Result<()> {
     todo!()
 }
