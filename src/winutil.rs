@@ -1,3 +1,5 @@
+use std::fs;
+
 // #[cfg(windows)]
 use {
     anyhow::{bail, Result},
@@ -13,7 +15,10 @@ use {
             UI::Shell::IsUserAnAdmin,
         },
     },
-    winreg::{enums::HKEY_LOCAL_MACHINE, RegKey},
+    winreg::{
+        enums::{HKEY_LOCAL_MACHINE, HKEY_USERS},
+        RegKey,
+    },
 };
 
 // * #[cfg(windows)] attrs are commented temporarily bcz I'm developing on unix; yes it's a pain
@@ -238,10 +243,87 @@ pub fn set_lockscreen_blur(enable: bool) -> Result<()> {
     }
 }
 
-fn set_lockscreen_img(user_sid: &str, image: impl AsRef<Path>) -> Result<()> {
+pub fn set_lockscreen_img(user_sid: &str, image: impl AsRef<Path>) -> Result<()> {
+    // Supposedly necessary for updated 21H2+ versions if RotatingLockScreenEnabled is not already set to 0
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+    let (key, _disp) = hklm.create_subkey(format!(
+        "{}\\{}",
+        r#"SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Creative"#, user_sid
+    ))?;
+    key.set_value("RotatingLockScreenEnabled", &0_u32)?;
+
+    let hku = RegKey::predef(HKEY_USERS);
+    let (key, _disp) = hku.create_subkey(format!(
+        "{}\\{}",
+        user_sid, r#"SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"#
+    ))?;
+    key.set_value("RotatingLockScreenEnabled", &0_u32)?;
+
+    let windir = get_env_var("windir")?;
+    let programdata = get_env_var("programdata")?;
+
+    // Copy img to the right spot
+    for img in ["img100.jpg", "img103.png", "img0.jpg"]
+        .into_iter()
+        .map(|img| format!("{}\\{}\\{}", windir, r#"Web\Screen"#, img))
+    {
+        if !Command::new("takeown")
+            .args(["/f", img.as_str()])
+            .status()?
+            .success()
+            && !Command::new("icacls")
+                .args([img.as_str(), "/reset"])
+                .status()?
+                .success()
+        {
+            bail!("failed to take ownership of old images");
+        }
+        // TODO: maybe do img conversion rather than just renaming the extension
+        fs::copy(image, Path::new(img.as_str()))?;
+    }
+
+    // clear cache
+    let systemdata = format!("{}\\{}", programdata, r#"Microsoft\Windows\SystemData"#);
+    if !Command::new("takeown")
+        .args(["/r", "/d", "y", "/f", systemdata.as_str()])
+        .status()?
+        .success()
+        && !Command::new("icacls")
+            .args([systemdata.as_str(), "/reset"])
+            .status()?
+            .success()
+    {
+        bail!("failed to take ownership of directory");
+    }
+
+    // ln 459
+    // almost done...
     todo!()
 }
 
 fn set_profile_img(user_sid: &str, image: impl AsRef<Path>) -> Result<()> {
     todo!()
+}
+
+/// This is not ideal
+///
+/// **NOTE:** Uses `powershell`
+pub fn get_env_var(env_var: &str) -> Result<String> {
+    str::from_utf8(
+        Command::new("powershell")
+            .args([
+                "-NoP",
+                "-C",
+                format!(
+                    "[System.Environment]::GetEnvironmentVariable('{}')",
+                    env_var
+                )
+                .as_str(),
+            ])
+            .output()?
+            .stdout
+            .as_slice(),
+    )
+    .map(|s| s.trim().to_owned())
+    .map_err(Into::into)
 }
