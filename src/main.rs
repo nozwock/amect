@@ -67,9 +67,6 @@ fn main() -> Result<()> {
                 Please try again after a relogin.",
                     )?;
 
-                    if let Some(username) = user.username {
-                        set_username(&session_username, &username)?;
-                    }
                     if let Some(password) = user.user_password {
                         set_password(&session_username, &password)?;
                     }
@@ -81,6 +78,11 @@ fn main() -> Result<()> {
                     }
                     if let Some(elevate_user) = user.elevate_user {
                         net_set_user_elevated(elevate_user, &session_username)?;
+                    }
+                    // ! do set_username at the end; order is important
+                    // so that other functions don't fail early due to a username change they didn't expect
+                    if let Some(username) = user.username {
+                        set_username(&session_username, &username)?;
                     }
 
                     // print msg when no errors
