@@ -6,6 +6,7 @@ use anyhow::Result;
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> Result<()> {
     use amect::{
+        cli::args as CliArgs,
         winutils::{
             get_username, is_admin,
             misc::{
@@ -57,13 +58,13 @@ fn main() -> Result<()> {
                 Box::new(|cc| Box::new(AmectApp::new(cc))),
             );
         }
-        Some(amect::args::Commands::Cli(cli)) => {
+        Some(CliArgs::Commands::Cli(cli)) => {
             if !is_admin() {
                 bail!("admin privileges are required!");
             }
 
             match cli {
-                amect::args::Cli::User(user) => {
+                CliArgs::Cli::User(user) => {
                     if user == Default::default() {
                         // default interactive mode
                         unimplemented!();
@@ -93,7 +94,7 @@ fn main() -> Result<()> {
                     // print msg when no errors
                     println!("Changes have been successfully made!");
                 }
-                amect::args::Cli::Visual(visual) => {
+                CliArgs::Cli::Visual(visual) => {
                     if visual == Default::default() {
                         // default interactive mode
                         unimplemented!();
@@ -114,7 +115,7 @@ fn main() -> Result<()> {
                     // print msg when no errors
                     println!("Changes have been successfully made!");
                 }
-                amect::args::Cli::Login(login) => {
+                CliArgs::Cli::Login(login) => {
                     if login == Default::default() {
                         // default interactive mode
                         unimplemented!();

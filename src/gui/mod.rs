@@ -1,3 +1,3 @@
 mod app;
-pub mod widgets;
+mod widgets;
 pub use app::AmectApp;
