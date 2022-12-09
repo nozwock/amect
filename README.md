@@ -6,12 +6,12 @@ An alternative to [amecs](https://git.ameliorated.info/Joe/amecs/src/branch/mast
 
 > GUI is planned if I get time for it
 
-## Feature parity (backend)
+## Feature parity (backend):
 - [x] Change username/password
 - [x] Elevate user to administrator
-- [ ] Change profile image
-- [ ] Change lockscreen image
-- [ ] Toggle lockscreen blur
+- [x] Change profile image
+- [x] Change lockscreen image
+- [x] Toggle lockscreen blur
 - [x] Enable/disable username login requirement
 - [ ] Enable/disable auto-login
 - [ ] Manage language settings
