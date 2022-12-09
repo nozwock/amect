@@ -8,8 +8,11 @@ fn main() -> Result<()> {
     use amect::{
         winutils::{
             get_username, is_admin,
-            misc::{net_set_user_elevated, set_username_login_requirement},
-            set_password, set_username, wmic_get_session_user,
+            misc::{
+                net_set_user_elevated, set_lockscreen_img, set_profile_img,
+                set_username_login_requirement,
+            },
+            set_password, set_username, wmic_get_session_user, wmic_get_user_sid,
         },
         AmectApp, AmectCli,
     };
@@ -19,6 +22,10 @@ fn main() -> Result<()> {
     use native_dialog::MessageDialog;
 
     let cli = AmectCli::parse();
+
+    let get_session_user_err =
+        "failed to retrieve username, it's likely that username has been recently modified. \
+        Please try again after a relogin.";
 
     match cli.command {
         None => {
@@ -62,11 +69,8 @@ fn main() -> Result<()> {
                         unimplemented!();
                     }
 
-                    let (_session_domain, session_username) = wmic_get_session_user().context(
-                        "\
-                failed to retrieve username, it's likely that username has been recently modified. \
-                Please try again after a relogin.",
-                    )?;
+                    let (_session_domain, session_username) =
+                        wmic_get_session_user().context(get_session_user_err)?;
 
                     if let Some(password) = user.user_password {
                         set_password(&session_username, &password)?;
@@ -95,11 +99,16 @@ fn main() -> Result<()> {
                         unimplemented!();
                     }
 
-                    if let Some(_profile_img) = visual.profile_img {
-                        unimplemented!();
+                    let (_session_domain, session_username) =
+                        wmic_get_session_user().context(get_session_user_err)?;
+                    let user_sid =
+                        wmic_get_user_sid(&session_username).context(get_session_user_err)?;
+
+                    if let Some(profile_img) = visual.profile_img {
+                        set_profile_img(&user_sid, profile_img)?;
                     }
-                    if let Some(_lockscreen_img) = visual.lockscreen_img {
-                        unimplemented!();
+                    if let Some(lockscreen_img) = visual.lockscreen_img {
+                        set_lockscreen_img(&user_sid, lockscreen_img)?;
                     }
 
                     // print msg when no errors

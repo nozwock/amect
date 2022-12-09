@@ -79,11 +79,13 @@ pub fn set_lockscreen_img<P: AsRef<Path>>(user_sid: &str, image_path: P) -> Resu
         .into_iter()
         .map(|img| format!("{}\\{}\\{}", windir, r#"Web\Screen"#, img))
     {
-        if !Command::new("takeown")
+        // TODO: fix err for when file not found
+        // TODO: also set strerr to null
+        if !dbg!(Command::new("takeown")
             .args(["/f", img.as_str()])
             .stdout(Stdio::null())
-            .status()?
-            .success()
+            .status()?)
+        .success()
             && !Command::new("icacls")
                 .args([img.as_str(), "/reset"])
                 .stdout(Stdio::null())
@@ -92,7 +94,7 @@ pub fn set_lockscreen_img<P: AsRef<Path>>(user_sid: &str, image_path: P) -> Resu
         {
             bail!("failed to take ownership of old images");
         }
-        // TODO: maybe do img conversion rather than just renaming the extension
+        // TODO: maybe consider doing proper img conversion rather than just renaming the extension?
         fs::copy(&image_path, Path::new(img.as_str()))?;
     }
 
@@ -112,9 +114,22 @@ pub fn set_lockscreen_img<P: AsRef<Path>>(user_sid: &str, image_path: P) -> Resu
         bail!("failed to take ownership of directory");
     }
 
-    // ln 459
-    // almost done...
-    todo!()
+    for entry in fs::read_dir(systemdata.as_str())? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_dir() {
+            for inner in fs::read_dir(path.join("ReadOnly"))? {
+                let inner = inner?;
+                let path = inner.path();
+                let name = path.to_string_lossy();
+                if path.is_dir() && name.starts_with("LockScreen_") {
+                    fs::remove_dir_all(path)?;
+                }
+            }
+        }
+    }
+
+    Ok(())
 }
 
 /// needs testing
@@ -153,7 +168,7 @@ pub fn set_profile_img<P: AsRef<Path>>(user_sid: &str, image_path: P) -> Result<
         "{}\\{}",
         r#"SOFTWARE\Microsoft\Windows\CurrentVersion\AccountPicture\Users"#, user_sid
     );
-    // TODO: figure how to run the reg delete as system user (for compaitibility) ln 502
+    // TODO: figure out how to run the reg delete as system user (for compaitibility) ln 502
     if let Err(err) = hklm.delete_subkey_all(usr_pfp_key.as_str()) {
         match err.kind() {
             std::io::ErrorKind::NotFound => { /* ignore */ }
@@ -182,3 +197,5 @@ pub fn set_profile_img<P: AsRef<Path>>(user_sid: &str, image_path: P) -> Result<
 
     Ok(())
 }
+
+// TODO: autologon ln 1124
