@@ -6,9 +6,10 @@ use anyhow::Result;
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> Result<()> {
     use amect::{
-        winutil::{
-            get_username, is_admin, net_set_user_elevated, set_password, set_username,
-            set_username_login_requirement, wmic_get_session_user,
+        winutils::{
+            get_username, is_admin,
+            misc::{net_set_user_elevated, set_username_login_requirement},
+            set_password, set_username, wmic_get_session_user,
         },
         AmectApp, AmectCli,
     };

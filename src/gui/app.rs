@@ -1,4 +1,4 @@
-use crate::util::browse_image_file;
+use crate::utils::browse_image_file;
 use eframe::egui;
 
 #[derive(Debug, Default)]
