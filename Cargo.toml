@@ -18,6 +18,7 @@ native-dialog = { version = "0.6.3", features = [
 ] }
 widestring = "1.0.2"
 winreg = "0.10.1"
+dirs = "4.0.0"
 [dependencies.windows]
 version = "0.43.0"
 features = [
@@ -27,9 +28,6 @@ features = [
     "Win32_System_WindowsProgramming",
     "Win32_NetworkManagement_NetManagement",
 ]
-
-[target.'cfg(windows)'.dependencies]
-# winreg = "0.10.1"
 
 [profile.release]
 strip = true

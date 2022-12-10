@@ -55,4 +55,11 @@ pub struct Login {
     pub require_username: Option<bool>,
     #[arg(long, value_name = "BOOL")]
     pub auto_login: Option<bool>,
+    #[arg(
+        short,
+        long,
+        value_name = "STRING",
+        required_if_eq("auto_login", "true")
+    )]
+    pub password: Option<String>,
 }

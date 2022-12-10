@@ -10,8 +10,8 @@ fn main() -> Result<()> {
         winutils::{
             get_username, is_admin,
             misc::{
-                net_set_user_elevated, set_lockscreen_img, set_profile_img,
-                set_username_login_requirement,
+                disable_autologon, enable_autologon, net_set_user_elevated, set_lockscreen_img,
+                set_profile_img, set_username_login_requirement,
             },
             set_password, set_username, wmic_get_session_user, wmic_get_user_sid,
         },
@@ -121,11 +121,23 @@ fn main() -> Result<()> {
                         unimplemented!();
                     }
 
+                    let (_session_domain, session_username) =
+                        wmic_get_session_user().context(get_session_user_err)?;
+
                     if let Some(require_username) = login.require_username {
                         set_username_login_requirement(require_username)?;
                     }
-                    if let Some(_auto_login) = login.auto_login {
-                        unimplemented!();
+                    if let Some(auto_login) = login.auto_login {
+                        if auto_login {
+                            enable_autologon(
+                                &session_username,
+                                &login.password.expect(
+                                    "--password will always be passed along with --auto-login true",
+                                ),
+                            )?;
+                        } else {
+                            disable_autologon()?;
+                        }
                     }
 
                     // print msg when no errors

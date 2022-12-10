@@ -1,4 +1,5 @@
 use super::helpers::get_env_var;
+use crate::cache::CacheEmbedded;
 use anyhow::{bail, Result};
 use std::{
     fs,
@@ -86,7 +87,7 @@ pub fn set_lockscreen_img<P: AsRef<Path>>(user_sid: &str, image_path: P) -> Resu
             .stdout(Stdio::null())
             .status()?)
         .success()
-            && !Command::new("icacls")
+            || !Command::new("icacls")
                 .args([img.as_str(), "/reset"])
                 .stdout(Stdio::null())
                 .status()?
@@ -105,7 +106,7 @@ pub fn set_lockscreen_img<P: AsRef<Path>>(user_sid: &str, image_path: P) -> Resu
         .stdout(Stdio::null())
         .status()?
         .success()
-        && !Command::new("icacls")
+        || !Command::new("icacls")
             .args([systemdata.as_str(), "/reset"])
             .stdout(Stdio::null())
             .status()?
@@ -145,7 +146,7 @@ pub fn set_profile_img<P: AsRef<Path>>(user_sid: &str, image_path: P) -> Result<
         .stdout(Stdio::null())
         .status()?
         .success()
-        && !Command::new("icacls")
+        || !Command::new("icacls")
             .args([usr_pfp_dir.as_str(), "/reset", "/t"])
             .stdout(Stdio::null())
             .status()?
@@ -198,4 +199,37 @@ pub fn set_profile_img<P: AsRef<Path>>(user_sid: &str, image_path: P) -> Result<
     Ok(())
 }
 
-// TODO: autologon ln 1124
+pub fn enable_autologon(username: &str, password: &str) -> Result<()> {
+    let autologon_path = CacheEmbedded::AutoLogon.load()?;
+
+    if !Command::new(&autologon_path)
+        .arg("/del")
+        .stdout(Stdio::null())
+        .status()?
+        .success()
+        || !Command::new(&autologon_path)
+            .args([username, password, "/DISABLECAD"])
+            .stdout(Stdio::null())
+            .status()?
+            .success()
+    {
+        bail!("failed to enable autologon");
+    }
+
+    Ok(())
+}
+
+pub fn disable_autologon() -> Result<()> {
+    let autologon_path = CacheEmbedded::AutoLogon.load()?;
+
+    if !Command::new(&autologon_path)
+        .arg("/del")
+        .stdout(Stdio::null())
+        .status()?
+        .success()
+    {
+        bail!("failed to disable autologon");
+    }
+
+    Ok(())
+}

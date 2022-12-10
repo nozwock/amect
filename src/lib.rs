@@ -1,4 +1,6 @@
+mod cache;
 pub mod cli;
+pub mod defines;
 mod gui;
 pub mod utils;
 pub mod winutils;
