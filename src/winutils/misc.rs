@@ -61,53 +61,61 @@ pub fn set_lockscreen_img<P: AsRef<Path>>(user_sid: &str, image_path: P) -> Resu
     let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
     let (key, _disp) = hklm.create_subkey(format!(
         "{}\\{}",
-        r#"SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Creative"#, user_sid
+        r"SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Creative", user_sid
     ))?;
     key.set_value("RotatingLockScreenEnabled", &0_u32)?;
 
     let hku = RegKey::predef(HKEY_USERS);
     let (key, _disp) = hku.create_subkey(format!(
         "{}\\{}",
-        user_sid, r#"SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"#
+        user_sid, r"SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
     ))?;
     key.set_value("RotatingLockScreenEnabled", &0_u32)?;
 
     let windir = get_env_var("windir")?;
     let programdata = get_env_var("programdata")?;
 
+    let mut imgs = vec![format!(
+        "{}\\{}\\{}",
+        windir, r"Web\Wallpaper\Windows", "img0.jpg"
+    )];
+    imgs.extend(
+        ["img100.jpg", "img103.png"]
+            .into_iter()
+            .map(|img| format!("{}\\{}\\{}", windir, r"Web\Screen", img)),
+    );
+
     // Copy img to the right spot
-    for img in ["img100.jpg", "img103.png", "img0.jpg"]
-        .into_iter()
-        .map(|img| format!("{}\\{}\\{}", windir, r#"Web\Screen"#, img))
-    {
-        // TODO: fix err for when file not found
-        // TODO: also set strerr to null
-        if !dbg!(Command::new("takeown")
-            .args(["/f", img.as_str()])
-            .stdout(Stdio::null())
-            .status()?)
-        .success()
-            || !Command::new("icacls")
-                .args([img.as_str(), "/reset"])
+    for img in imgs {
+        if Path::new(&img).is_file() {
+            // TODO?: set strerr to null
+            if !Command::new("takeown")
+                .args(["/f", &img])
                 .stdout(Stdio::null())
                 .status()?
                 .success()
-        {
-            bail!("failed to take ownership of old images");
+                || !Command::new("icacls")
+                    .args([&img, "/reset"])
+                    .stdout(Stdio::null())
+                    .status()?
+                    .success()
+            {
+                bail!("failed to take ownership of old images");
+            }
         }
         // TODO: maybe consider doing proper img conversion rather than just renaming the extension?
-        fs::copy(&image_path, Path::new(img.as_str()))?;
+        fs::copy(&image_path, Path::new(&img))?;
     }
 
     // clear cache
-    let systemdata = format!("{}\\{}", programdata, r#"Microsoft\Windows\SystemData"#);
+    let systemdata = format!("{}\\{}", programdata, r"Microsoft\Windows\SystemData");
     if !Command::new("takeown")
-        .args(["/r", "/d", "y", "/f", systemdata.as_str()])
+        .args(["/r", "/d", "y", "/f", &systemdata])
         .stdout(Stdio::null())
         .status()?
         .success()
         || !Command::new("icacls")
-            .args([systemdata.as_str(), "/reset"])
+            .args([&systemdata, "/reset", "/t"])
             .stdout(Stdio::null())
             .status()?
             .success()
@@ -115,17 +123,15 @@ pub fn set_lockscreen_img<P: AsRef<Path>>(user_sid: &str, image_path: P) -> Resu
         bail!("failed to take ownership of directory");
     }
 
-    for entry in fs::read_dir(systemdata.as_str())? {
+    for entry in fs::read_dir(&systemdata)? {
         let entry = entry?;
         let path = entry.path();
-        if path.is_dir() {
-            for inner in fs::read_dir(path.join("ReadOnly"))? {
-                let inner = inner?;
-                let path = inner.path();
-                let name = path.to_string_lossy();
-                if path.is_dir() && name.starts_with("LockScreen_") {
-                    fs::remove_dir_all(path)?;
-                }
+        for inner in fs::read_dir(path.join("ReadOnly"))? {
+            let inner = inner?;
+            let path = inner.path();
+            let name = inner.file_name();
+            if path.is_dir() && name.to_string_lossy().starts_with("LockScreen_") {
+                fs::remove_dir_all(path)?;
             }
         }
     }
@@ -133,7 +139,6 @@ pub fn set_lockscreen_img<P: AsRef<Path>>(user_sid: &str, image_path: P) -> Resu
     Ok(())
 }
 
-/// needs testing
 pub fn set_profile_img<P: AsRef<Path>>(user_sid: &str, image_path: P) -> Result<()> {
     let pfp = image::open(&image_path)?;
 
@@ -169,7 +174,7 @@ pub fn set_profile_img<P: AsRef<Path>>(user_sid: &str, image_path: P) -> Result<
         "{}\\{}",
         r#"SOFTWARE\Microsoft\Windows\CurrentVersion\AccountPicture\Users"#, user_sid
     );
-    // TODO: figure out how to run the reg delete as system user (for compaitibility) ln 502
+    // TODO?: figure out how to run the reg delete as system user (for compaitibility; if this doesn't work) ln 502
     if let Err(err) = hklm.delete_subkey_all(usr_pfp_key.as_str()) {
         match err.kind() {
             std::io::ErrorKind::NotFound => { /* ignore */ }

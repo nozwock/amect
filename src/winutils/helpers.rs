@@ -1,4 +1,3 @@
-// #[cfg(windows)]
 use anyhow::{bail, Result};
 use std::{
     process::{Command, Stdio},
