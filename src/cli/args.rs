@@ -18,8 +18,11 @@ pub enum Commands {
 
 #[derive(Debug, Subcommand)]
 pub enum Cli {
+    /// Users related settings; Enters interactive mode by default
     User(User),
+    /// Visuals related settings; Enters interactive mode by default
     Visual(Visual),
+    /// Login related settings; Enters interactive mode by default
     Login(Login),
 }
 
@@ -47,12 +50,17 @@ pub struct Visual {
     /// Set new lockscreen image
     #[arg(long, value_name = "FILE")]
     pub lockscreen_img: Option<PathBuf>,
+    /// Enable/disable lockscreen blur
+    #[arg(long, value_name = "BOOL")]
+    pub lockscreen_blur: Option<bool>,
 }
 
 #[derive(Debug, Args, Default, PartialEq, Eq)]
 pub struct Login {
+    /// Whether to require username on login or not
     #[arg(long, value_name = "BOOL")]
     pub require_username: Option<bool>,
+    /// Enable/disable AutoLogon
     #[arg(long, value_name = "BOOL")]
     pub auto_login: Option<bool>,
     #[arg(
@@ -61,5 +69,6 @@ pub struct Login {
         value_name = "STRING",
         required_if_eq("auto_login", "true")
     )]
+    /// User password
     pub password: Option<String>,
 }

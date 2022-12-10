@@ -1,5 +1,7 @@
 use std::fmt;
 
+// * a lot boilerplate can be removed
+
 #[derive(Debug)]
 pub enum UserOptions {
     SetUsername,
@@ -38,6 +40,7 @@ impl fmt::Display for UserElevationOptions {
 pub enum VisualOptions {
     SetProfile,
     SetLockscreen,
+    LockscreenBlur,
 }
 
 impl fmt::Display for VisualOptions {
@@ -45,6 +48,22 @@ impl fmt::Display for VisualOptions {
         match self {
             VisualOptions::SetProfile => write!(f, "Set profile image"),
             VisualOptions::SetLockscreen => write!(f, "Set lockscreen image"),
+            VisualOptions::LockscreenBlur => write!(f, "Lockscreen blur"),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum LockscreenBlurOptions {
+    Enable,
+    Disable,
+}
+
+impl fmt::Display for LockscreenBlurOptions {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            LockscreenBlurOptions::Enable => write!(f, "Enable lockscreen blur"),
+            LockscreenBlurOptions::Disable => write!(f, "Disable lockscreen blur"),
         }
     }
 }

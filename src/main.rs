@@ -9,16 +9,16 @@ fn main() -> Result<()> {
         cli::{
             args as CliArgs,
             interact::{
-                AutoLoginOptions, LoginOptions, UserElevationOptions, UserOptions,
-                UserRequirementOptions, VisualOptions,
+                AutoLoginOptions, LockscreenBlurOptions, LoginOptions, UserElevationOptions,
+                UserOptions, UserRequirementOptions, VisualOptions,
             },
         },
         utils::browse_image_file,
         winutils::{
             get_username, is_admin,
             misc::{
-                disable_autologon, enable_autologon, net_set_user_elevated, set_lockscreen_img,
-                set_profile_img, set_username_login_requirement,
+                disable_autologon, enable_autologon, net_set_user_elevated, set_lockscreen_blur,
+                set_lockscreen_img, set_profile_img, set_username_login_requirement,
             },
             set_password, set_username, wmic_get_session_user, wmic_get_user_sid,
         },
@@ -69,6 +69,8 @@ fn main() -> Result<()> {
             if !is_admin() {
                 bail!("admin privileges are required!");
             }
+
+            // * a lot of boilerplate can be removed
 
             match cli {
                 CliArgs::Cli::User(user) => {
@@ -165,7 +167,11 @@ fn main() -> Result<()> {
                         // default interactive mode
                         let choice = inquire::Select::new(
                             "Select an option:",
-                            vec![VisualOptions::SetProfile, VisualOptions::SetLockscreen],
+                            vec![
+                                VisualOptions::SetProfile,
+                                VisualOptions::SetLockscreen,
+                                VisualOptions::LockscreenBlur,
+                            ],
                         )
                         .prompt()?;
 
@@ -180,6 +186,25 @@ fn main() -> Result<()> {
                                     browse_image_file().context("You must select an image!")?;
                                 set_lockscreen_img(&user_sid, img)?;
                             }
+                            VisualOptions::LockscreenBlur => {
+                                let choice = inquire::Select::new(
+                                    "Select an option:",
+                                    vec![
+                                        LockscreenBlurOptions::Enable,
+                                        LockscreenBlurOptions::Disable,
+                                    ],
+                                )
+                                .prompt()?;
+
+                                match choice {
+                                    LockscreenBlurOptions::Enable => {
+                                        set_lockscreen_blur(true)?;
+                                    }
+                                    LockscreenBlurOptions::Disable => {
+                                        set_lockscreen_blur(false)?;
+                                    }
+                                }
+                            }
                         }
 
                         // print msg when no errors
@@ -192,6 +217,9 @@ fn main() -> Result<()> {
                     }
                     if let Some(lockscreen_img) = visual.lockscreen_img {
                         set_lockscreen_img(&user_sid, lockscreen_img)?;
+                    }
+                    if let Some(set_blur) = visual.lockscreen_blur {
+                        set_lockscreen_blur(set_blur)?;
                     }
 
                     // print msg when no errors

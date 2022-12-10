@@ -45,13 +45,13 @@ pub fn set_username_login_requirement(enable: bool) -> Result<()> {
 
 pub fn set_lockscreen_blur(enable: bool) -> Result<()> {
     let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
-    let (key, _disp) = hklm.create_subkey(r#"SOFTWARE\Policies\Microsoft\Windows\System"#)?;
+    let (key, _disp) = hklm.create_subkey(r"SOFTWARE\Policies\Microsoft\Windows\System")?;
 
     if enable {
-        key.set_value("DisableAcrylicBackgroundOnLogon", &1_u32)
+        key.delete_value("DisableAcrylicBackgroundOnLogon")
             .map_err(Into::into)
     } else {
-        key.delete_value("DisableAcrylicBackgroundOnLogon")
+        key.set_value("DisableAcrylicBackgroundOnLogon", &1_u32)
             .map_err(Into::into)
     }
 }
