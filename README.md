@@ -4,6 +4,13 @@ Central AME toolkit (WIP)
 
 An alternative to [amecs](https://git.ameliorated.info/Joe/amecs/src/branch/master)
 
+## Usage
+
+Type the following to get help:
+```sh
+amect -ch
+```
+
 > GUI is planned if I get time for it
 
 ## Feature parity (backend):
@@ -13,7 +20,7 @@ An alternative to [amecs](https://git.ameliorated.info/Joe/amecs/src/branch/mast
 - [x] Change lockscreen image
 - [x] Toggle lockscreen blur
 - [x] Enable/disable username login requirement
-- [ ] Enable/disable auto-login
+- [x] Enable/disable auto-login
 - [ ] Manage language settings
     - [ ] Change display language
     - [ ] Add/delete keyboard layout
