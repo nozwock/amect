@@ -6,7 +6,14 @@ use anyhow::Result;
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> Result<()> {
     use amect::{
-        cli::args as CliArgs,
+        cli::{
+            args as CliArgs,
+            interact::{
+                AutoLoginOptions, LoginOptions, UserElevationOptions, UserOptions,
+                UserRequirementOptions, VisualOptions,
+            },
+        },
+        utils::browse_image_file,
         winutils::{
             get_username, is_admin,
             misc::{
@@ -48,7 +55,7 @@ fn main() -> Result<()> {
             }
 
             let native_options = eframe::NativeOptions {
-                initial_window_size: Some(Vec2::new(510., 400.)),
+                initial_window_size: Some(Vec2::new(550., 400.)),
                 min_window_size: Some(Vec2::new(400., 200.)),
                 ..Default::default()
             };
@@ -65,13 +72,67 @@ fn main() -> Result<()> {
 
             match cli {
                 CliArgs::Cli::User(user) => {
-                    if user == Default::default() {
-                        // default interactive mode
-                        unimplemented!();
-                    }
-
                     let (_session_domain, session_username) =
                         wmic_get_session_user().context(get_session_user_err)?;
+
+                    if user == Default::default() {
+                        // default interactive mode
+                        let choice = inquire::Select::new(
+                            "Select an option:",
+                            vec![
+                                UserOptions::SetUsername,
+                                UserOptions::SetPassword,
+                                UserOptions::SetAdminPassword,
+                                UserOptions::UserElevation,
+                            ],
+                        )
+                        .prompt()?;
+
+                        match choice {
+                            UserOptions::SetUsername => {
+                                let username = inquire::Text::new("New username:").prompt()?;
+                                set_username(&session_username, &username)?;
+                            }
+                            UserOptions::SetPassword => {
+                                let password = inquire::Password::new("New user password:")
+                                    .with_display_mode(inquire::PasswordDisplayMode::Masked)
+                                    .prompt()?;
+                                set_password(&session_username, &password)?;
+                            }
+                            UserOptions::SetAdminPassword => {
+                                let password = inquire::Password::new("New admin password:")
+                                    .with_display_mode(inquire::PasswordDisplayMode::Masked)
+                                    .prompt()?;
+                                set_password(
+                                    &get_username().context("failed to retrieve username")?,
+                                    &password,
+                                )?;
+                            }
+                            UserOptions::UserElevation => {
+                                let choice = inquire::Select::new(
+                                    "Select an option:",
+                                    vec![
+                                        UserElevationOptions::Enable,
+                                        UserElevationOptions::Disable,
+                                    ],
+                                )
+                                .prompt()?;
+
+                                match choice {
+                                    UserElevationOptions::Enable => {
+                                        net_set_user_elevated(true, &session_username)?;
+                                    }
+                                    UserElevationOptions::Disable => {
+                                        net_set_user_elevated(false, &session_username)?;
+                                    }
+                                }
+                            }
+                        }
+
+                        // print msg when no errors
+                        println!("Changes have been successfully made!");
+                        return Ok(());
+                    }
 
                     if let Some(password) = user.user_password {
                         set_password(&session_username, &password)?;
@@ -95,15 +156,36 @@ fn main() -> Result<()> {
                     println!("Changes have been successfully made!");
                 }
                 CliArgs::Cli::Visual(visual) => {
-                    if visual == Default::default() {
-                        // default interactive mode
-                        unimplemented!();
-                    }
-
                     let (_session_domain, session_username) =
                         wmic_get_session_user().context(get_session_user_err)?;
                     let user_sid =
                         wmic_get_user_sid(&session_username).context(get_session_user_err)?;
+
+                    if visual == Default::default() {
+                        // default interactive mode
+                        let choice = inquire::Select::new(
+                            "Select an option:",
+                            vec![VisualOptions::SetProfile, VisualOptions::SetLockscreen],
+                        )
+                        .prompt()?;
+
+                        match choice {
+                            VisualOptions::SetProfile => {
+                                let img =
+                                    browse_image_file().context("You must select an image!")?;
+                                set_profile_img(&user_sid, img)?;
+                            }
+                            VisualOptions::SetLockscreen => {
+                                let img =
+                                    browse_image_file().context("You must select an image!")?;
+                                set_lockscreen_img(&user_sid, img)?;
+                            }
+                        }
+
+                        // print msg when no errors
+                        println!("Changes have been successfully made!");
+                        return Ok(());
+                    }
 
                     if let Some(profile_img) = visual.profile_img {
                         set_profile_img(&user_sid, profile_img)?;
@@ -116,13 +198,66 @@ fn main() -> Result<()> {
                     println!("Changes have been successfully made!");
                 }
                 CliArgs::Cli::Login(login) => {
-                    if login == Default::default() {
-                        // default interactive mode
-                        unimplemented!();
-                    }
-
                     let (_session_domain, session_username) =
                         wmic_get_session_user().context(get_session_user_err)?;
+
+                    if login == Default::default() {
+                        // default interactive mode
+                        let choice = inquire::Select::new(
+                            "Select an option:",
+                            vec![LoginOptions::UserRequirement, LoginOptions::AutoLogin],
+                        )
+                        .prompt()?;
+
+                        match choice {
+                            LoginOptions::UserRequirement => {
+                                let choice = inquire::Select::new(
+                                    "Select an option:",
+                                    vec![
+                                        UserRequirementOptions::Enable,
+                                        UserRequirementOptions::Disable,
+                                    ],
+                                )
+                                .prompt()?;
+
+                                match choice {
+                                    UserRequirementOptions::Enable => {
+                                        set_username_login_requirement(true)?;
+                                    }
+                                    UserRequirementOptions::Disable => {
+                                        set_username_login_requirement(false)?;
+                                    }
+                                }
+                            }
+                            LoginOptions::AutoLogin => {
+                                let choice = inquire::Select::new(
+                                    "Select an option:",
+                                    vec![AutoLoginOptions::Enable, AutoLoginOptions::Disable],
+                                )
+                                .prompt()?;
+
+                                match choice {
+                                    AutoLoginOptions::Enable => {
+                                        let password =
+                                            inquire::Password::new("Enter your user password:")
+                                                .with_display_mode(
+                                                    inquire::PasswordDisplayMode::Masked,
+                                                )
+                                                .without_confirmation()
+                                                .prompt()?;
+                                        enable_autologon(&session_username, &password)?;
+                                    }
+                                    AutoLoginOptions::Disable => {
+                                        disable_autologon()?;
+                                    }
+                                }
+                            }
+                        }
+
+                        // print msg when no errors
+                        println!("Changes have been successfully made!");
+                        return Ok(());
+                    }
 
                     if let Some(require_username) = login.require_username {
                         set_username_login_requirement(require_username)?;
