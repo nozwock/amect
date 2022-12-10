@@ -18,7 +18,7 @@ amect -ch
 - [x] Elevate user to administrator
 - [x] Change profile image
 - [x] Change lockscreen image
-- [ ] Toggle lockscreen blur (need fix)
+- [x] Toggle lockscreen blur
 - [x] Enable/disable username login requirement
 - [x] Enable/disable auto-login
 - [ ] Manage language settings
