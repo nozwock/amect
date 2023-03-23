@@ -70,8 +70,6 @@ fn main() -> Result<()> {
                 bail!("admin privileges are required!");
             }
 
-            // * a lot of boilerplate can be removed
-
             match cli {
                 CliArgs::Cli::User(user) => {
                     let (_session_domain, session_username) =
