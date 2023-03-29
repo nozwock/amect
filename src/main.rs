@@ -1,5 +1,5 @@
-// #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
-// but also gets rid of stdout :-/
+// #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+// Hides console on Windows in release build
 use anyhow::Result;
 
 // When compiling natively
@@ -14,19 +14,16 @@ fn main() -> Result<()> {
             },
         },
         utils::browse_image_file,
-        winutils::{
-            get_username, is_admin,
-            misc::{
-                disable_autologon, enable_autologon, net_set_user_elevated, set_lockscreen_blur,
-                set_lockscreen_img, set_profile_img, set_username_login_requirement,
-            },
-            set_password, set_username, wmic_get_session_user, wmic_get_user_sid,
-        },
         AmectApp, AmectCli,
     };
     use anyhow::{bail, Context};
     use clap::Parser;
     use eframe::epaint::Vec2;
+    use libamect_common::windows::{
+        disable_autologon, enable_autologon, get_username, is_admin, net_set_user_elevated,
+        set_lockscreen_blur, set_lockscreen_img, set_password, set_profile_img, set_username,
+        set_username_login_requirement, wmic_get_session_user, wmic_get_user_sid,
+    };
     use native_dialog::MessageDialog;
 
     let cli = AmectCli::parse();

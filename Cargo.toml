@@ -1,37 +1,24 @@
 [package]
 name = "amect"
-description = "Central AME tooklit"
+description = "Central AME toolkit GUI"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = ["amect-cli", "libamect-common"]
+
+[workspace.dependencies]
+anyhow = "1.0"
 
 [dependencies]
-anyhow = "1.0.66"
+anyhow = { workspace = true }
 clap = { version = "4.0.29", features = ["derive"] }
-eframe = "0.21"
+eframe = "0.20"
 image = "0.24.5"
 inquire = "0.6"
 native-dialog = { version = "0.6.3", features = [
     "windows_dpi_awareness",
     "windows_visual_styles",
 ] }
-widestring = "1.0.2"
 dirs = "5.0"
-[target.'cfg(windows)'.dependencies]
-winreg = "0.11"
-[dependencies.windows]
-version = "0.46"
-features = [
-    "Win32_Foundation",
-    "Win32_UI_Shell",
-    "Win32_System",
-    "Win32_System_WindowsProgramming",
-    "Win32_NetworkManagement_NetManagement",
-]
-
-[profile.release]
-strip = true
-opt-level = "s"
-lto = true
-panic = "abort"
+libamect-common = { path = "libamect-common" }
