@@ -9,6 +9,7 @@ edition = "2021"
 anyhow = { workspace = true }
 dirs = "5.0"
 image = "0.24"
+native-dialog = { workspace = true }
 
 [target.'cfg(windows)'.dependencies]
 widestring = "1.0"

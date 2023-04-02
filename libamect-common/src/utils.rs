@@ -1,30 +1,13 @@
-use std::process::Command;
+use std::path::PathBuf;
 
-use anyhow::Result;
-use windows::Win32::UI::Shell::IsUserAnAdmin;
+use anyhow::{Context, Result};
 
-pub fn is_admin() -> bool {
-    unsafe { IsUserAnAdmin().as_bool() }
-}
-
-/// This is not ideal due to the finnicky string manipulation.
-///
-/// Uses `powershell`.
-pub fn get_env_var(env_var: &str) -> Result<String> {
-    String::from_utf8(
-        Command::new("powershell")
-            .args([
-                "-NoP",
-                "-C",
-                format!(
-                    "[System.Environment]::GetEnvironmentVariable('{}')",
-                    env_var
-                )
-                .as_str(),
-            ])
-            .output()?
-            .stdout,
-    )
-    .map(|s| s.trim().to_owned())
-    .map_err(Into::into)
+pub fn pick_image_file() -> Result<PathBuf> {
+    native_dialog::FileDialog::new()
+        .add_filter("All Images", &["png", "jpg", "jpeg", "bmp"])
+        .add_filter("PNG Image", &["png"])
+        .add_filter("JPEG Image", &["jpg", "jpeg"])
+        .add_filter("Bitmap Image", &["bmp"])
+        .show_open_single_file()
+        .map(|f| f.context("no file was selected"))?
 }

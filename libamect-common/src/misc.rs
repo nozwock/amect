@@ -1,4 +1,4 @@
-use super::utils::get_env_var;
+use super::winutils::get_env_var;
 use crate::cache::CacheEmbedded;
 use anyhow::{bail, Result};
 use std::{

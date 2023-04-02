@@ -107,7 +107,6 @@ dependencies = [
  "image",
  "inquire",
  "libamect-common",
- "native-dialog",
 ]
 
 [[package]]
@@ -1406,6 +1405,7 @@ dependencies = [
  "anyhow",
  "dirs 5.0.0",
  "image",
+ "native-dialog",
  "widestring",
  "windows 0.46.0",
  "winreg",

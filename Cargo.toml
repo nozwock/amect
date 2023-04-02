@@ -9,6 +9,10 @@ members = ["amect-cli", "libamect-common"]
 
 [workspace.dependencies]
 anyhow = "1.0"
+native-dialog = { version = "0.6.3", features = [
+    "windows_dpi_awareness",
+    "windows_visual_styles",
+] }
 
 [dependencies]
 anyhow = { workspace = true }
@@ -16,9 +20,10 @@ clap = { version = "4.0.29", features = ["derive"] }
 eframe = "0.20"
 image = "0.24.5"
 inquire = "0.6"
-native-dialog = { version = "0.6.3", features = [
-    "windows_dpi_awareness",
-    "windows_visual_styles",
-] }
 dirs = "5.0"
 libamect-common = { path = "libamect-common" }
+
+[profile.release]
+strip = true
+opt-level = "s"
+lto = true
