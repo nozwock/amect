@@ -1,0 +1,12 @@
+[package]
+name = "amect-cli"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = { workspace = true }
+clap = { version = "4.2.1", features = ["derive"] }
+inquire = "0.6.0"
+libamect-common = { path = "../libamect-common" }

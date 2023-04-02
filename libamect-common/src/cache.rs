@@ -1,7 +1,6 @@
+use crate::defines::{app_cache_dir, AUTO_LOGON};
 use anyhow::Result;
 use std::{fmt, fs, io::Write, path::PathBuf};
-
-use crate::defines::{app_cache_dir, AUTO_LOGON};
 
 #[derive(Debug)]
 pub enum CacheEmbedded {

@@ -1,9 +1,8 @@
+use clap::{Args, Parser, Subcommand};
 use std::path::PathBuf;
 
-use clap::{Args, Parser, Subcommand};
-
 #[derive(Debug, Parser)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version, about, long_about = None, arg_required_else_help = true)]
 pub struct AmectCli {
     #[command(subcommand)]
     pub command: Option<Commands>,
@@ -11,18 +10,11 @@ pub struct AmectCli {
 
 #[derive(Debug, Subcommand)]
 pub enum Commands {
-    /// Use the app in cli mode
-    #[command(short_flag = 'c', subcommand)]
-    Cli(Cli),
-}
-
-#[derive(Debug, Subcommand)]
-pub enum Cli {
-    /// Users related settings; Enters interactive mode by default
+    /// Users related settings
     User(User),
-    /// Visuals related settings; Enters interactive mode by default
+    /// Visuals related settings
     Visual(Visual),
-    /// Login related settings; Enters interactive mode by default
+    /// Login related settings
     Login(Login),
 }
 
@@ -69,6 +61,6 @@ pub struct Login {
         value_name = "STRING",
         required_if_eq("auto_login", "true")
     )]
-    /// User password
-    pub password: Option<String>,
+    /// Current user password; Needed to setup autologin
+    pub user_password: Option<String>,
 }

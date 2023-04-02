@@ -1,7 +1,7 @@
 use anyhow::{bail, Result};
 use std::{
     process::{Command, Stdio},
-    slice, str,
+    slice,
 };
 use widestring::U16CString;
 use windows::{
@@ -11,13 +11,8 @@ use windows::{
             NERR_Success, NERR_UserNotFound, NetUserSetInfo, USER_INFO_0, USER_INFO_1003,
         },
         System::WindowsProgramming::GetUserNameW,
-        UI::Shell::IsUserAnAdmin,
     },
 };
-
-pub fn is_admin() -> bool {
-    unsafe { IsUserAnAdmin().as_bool() }
-}
 
 /// Retrieves the name of the user associated with the current thread.
 ///
@@ -113,7 +108,7 @@ pub fn set_password(username: &str, password: &str) -> Result<()> {
 ///
 /// Returns `None` if username was changed in the active session.
 pub fn wmic_get_session_user() -> Option<(String, String)> {
-    str::from_utf8(
+    std::str::from_utf8(
         Command::new("WMIC")
             .args(["computersystem", "get", "username"])
             .output()
@@ -133,7 +128,7 @@ pub fn wmic_get_session_user() -> Option<(String, String)> {
 
 /// Returns `None` if username was changed in the active session.
 pub fn wmic_get_user_sid(username: &str) -> Option<String> {
-    str::from_utf8(
+    std::str::from_utf8(
         Command::new("WMIC")
             .args([
                 "useraccount",
@@ -182,27 +177,4 @@ pub fn net_set_password(username: &str, password: &str) -> Result<()> {
     }
 
     Ok(())
-}
-
-/// This is not ideal due to the use of `trim()`.
-///
-/// Uses `powershell`.
-pub fn get_env_var(env_var: &str) -> Result<String> {
-    str::from_utf8(
-        Command::new("powershell")
-            .args([
-                "-NoP",
-                "-C",
-                format!(
-                    "[System.Environment]::GetEnvironmentVariable('{}')",
-                    env_var
-                )
-                .as_str(),
-            ])
-            .output()?
-            .stdout
-            .as_slice(),
-    )
-    .map(|s| s.trim().to_owned())
-    .map_err(Into::into)
 }
