@@ -1,8 +1,10 @@
 # amect
 
-Central AME toolkit (WIP)
+Central AME toolkit
 
-An alternative to [amecs](https://git.ameliorated.info/Joe/amecs/src/branch/master)
+> **Note** - This project is effectively dead since AME has changed a lot, look [here](https://ameliorated.io/) for more info
+
+An alternative to [amecs](https://git.ameliorated.info/Styris/amecs)
 
 ## Usage
 
