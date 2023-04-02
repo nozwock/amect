@@ -1,5 +1,5 @@
-use crate::utils::browse_image_file;
 use eframe::egui;
+use libamect_common::utils::pick_image_file;
 
 #[derive(Debug, Default)]
 pub struct AmectApp {
@@ -108,13 +108,13 @@ impl eframe::App for AmectApp {
                     .show(ui, |ui| {
                         ui.label("Set new lockscreen image");
                         if ui.button("🗁 Browse").clicked() {
-                            dbg!(browse_image_file());
+                            dbg!(pick_image_file());
                         }
                         ui.end_row();
 
                         ui.label("Set new profile image");
                         if ui.button("🗁 Browse").clicked() {
-                            dbg!(browse_image_file());
+                            dbg!(pick_image_file());
                         }
                         ui.end_row();
                     });

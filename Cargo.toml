@@ -16,12 +16,11 @@ native-dialog = { version = "0.6.3", features = [
 
 [dependencies]
 anyhow = { workspace = true }
-clap = { version = "4.0.29", features = ["derive"] }
+dirs = "5.0"
 eframe = "0.20"
 image = "0.24.5"
-inquire = "0.6"
-dirs = "5.0"
 libamect-common = { path = "libamect-common" }
+native-dialog = { workspace = true }
 
 [profile.release]
 strip = true

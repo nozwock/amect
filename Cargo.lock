@@ -101,12 +101,11 @@ name = "amect"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "clap",
  "dirs 5.0.0",
  "eframe",
  "image",
- "inquire",
  "libamect-common",
+ "native-dialog",
 ]
 
 [[package]]
