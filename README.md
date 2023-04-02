@@ -6,14 +6,14 @@ An alternative to [amecs](https://git.ameliorated.info/Joe/amecs/src/branch/mast
 
 ## Usage
 
-Type the following to get help:
-```sh
-amect -ch
+To print basic usage info:
+```batch
+amect-cli.exe -h
 ```
 
-> GUI is planned if I get time for it
+> **Note** - GUI is planned if I get the time for it
 
-## Feature parity (backend):
+## Feature parity:
 - [x] Change username/password
 - [x] Elevate user to administrator
 - [x] Change profile image
